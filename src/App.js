@@ -79,7 +79,7 @@ function App() {
     setInCall(false);
     setCallWith(null);
     setIncomingCall(null);
-  }, [callWith, user]);
+  }, [callWith, user, setDoctorStatus]);
 
   const connectWebSocket = useCallback(() => {
     ws.current = new WebSocket(`${WS_URL}?token=${token}`);
@@ -146,7 +146,7 @@ function App() {
     }
   };
 
-  const setDoctorStatus = async (status) => {
+  const setDoctorStatus = useCallback(async (status) => {
     try {
       await fetch(`${API_BASE}/doctors/status`, {
         method: 'POST',
@@ -159,7 +159,7 @@ function App() {
     } catch (err) {
       console.error('Error setting status:', err);
     }
-  };
+  }, [token]);
 
   const sendMessage = () => {
     if (!chatInput.trim() || !selectedUser) return;
