@@ -46,6 +46,41 @@ function App() {
   const localStream = useRef(null);
   const remoteAudio = useRef(null);
 
+  const handleAnswer = useCallback(async (answer) => {
+    try {
+      await pc.current.setRemoteDescription(new RTCSessionDescription(answer));
+    } catch (err) {
+      console.error('Error handling answer:', err);
+    }
+  }, []);
+
+  const endCall = useCallback(() => {
+    if (ws.current && callWith) {
+      ws.current.send(JSON.stringify({
+        type: 'call_ended',
+        to: callWith.username
+      }));
+    }
+    
+    if (pc.current) {
+      pc.current.close();
+      pc.current = null;
+    }
+    
+    if (localStream.current) {
+      localStream.current.getTracks().forEach(t => t.stop());
+      localStream.current = null;
+    }
+    
+    if (user?.role === 'DOCTOR') {
+      setDoctorStatus('ONLINE');
+    }
+    
+    setInCall(false);
+    setCallWith(null);
+    setIncomingCall(null);
+  }, [callWith, user]);
+
   const connectWebSocket = useCallback(() => {
     ws.current = new WebSocket(`${WS_URL}?token=${token}`);
     
@@ -73,7 +108,7 @@ function App() {
     
     ws.current.onerror = (error) => console.error('WebSocket error:', error);
     ws.current.onclose = () => console.log('WebSocket closed');
-  }, [token, user]);
+  }, [token, user, handleAnswer, endCall]);
 
   useEffect(() => {
     if (isLoggedIn && token) {
@@ -273,41 +308,6 @@ function App() {
       alert('Error accepting call: ' + errorMsg);
       console.error('Call error details:', err);
     }
-  };
-
-  const handleAnswer = async (answer) => {
-    try {
-      await pc.current.setRemoteDescription(new RTCSessionDescription(answer));
-    } catch (err) {
-      console.error('Error handling answer:', err);
-    }
-  };
-
-  const endCall = () => {
-    if (ws.current && callWith) {
-      ws.current.send(JSON.stringify({
-        type: 'call_ended',
-        to: callWith.username
-      }));
-    }
-    
-    if (pc.current) {
-      pc.current.close();
-      pc.current = null;
-    }
-    
-    if (localStream.current) {
-      localStream.current.getTracks().forEach(t => t.stop());
-      localStream.current = null;
-    }
-    
-    if (user?.role === 'DOCTOR') {
-      setDoctorStatus('ONLINE');
-    }
-    
-    setInCall(false);
-    setCallWith(null);
-    setIncomingCall(null);
   };
 
   const logout = () => {
