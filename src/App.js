@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Phone, PhoneOff, Send, Users, Radio, LogOut, User } from 'lucide-react';
 
 // Use environment variable or derive from window location
@@ -46,20 +46,7 @@ function App() {
   const localStream = useRef(null);
   const remoteAudio = useRef(null);
 
-  useEffect(() => {
-    if (isLoggedIn && token) {
-      connectWebSocket();
-    }
-    return () => {
-      if (ws.current) ws.current.close();
-      if (pc.current) pc.current.close();
-      if (localStream.current) {
-        localStream.current.getTracks().forEach(t => t.stop());
-      }
-    };
-  }, [isLoggedIn, token]);
-
-  const connectWebSocket = () => {
+  const connectWebSocket = useCallback(() => {
     ws.current = new WebSocket(`${WS_URL}?token=${token}`);
     
     ws.current.onopen = () => console.log('WebSocket connected');
@@ -86,7 +73,20 @@ function App() {
     
     ws.current.onerror = (error) => console.error('WebSocket error:', error);
     ws.current.onclose = () => console.log('WebSocket closed');
-  };
+  }, [token, user]);
+
+  useEffect(() => {
+    if (isLoggedIn && token) {
+      connectWebSocket();
+    }
+    return () => {
+      if (ws.current) ws.current.close();
+      if (pc.current) pc.current.close();
+      if (localStream.current) {
+        localStream.current.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, [isLoggedIn, token, connectWebSocket]);
 
   const handleAuth = async (isReg) => {
     try {
