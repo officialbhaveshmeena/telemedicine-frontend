@@ -54,6 +54,21 @@ function App() {
     }
   }, []);
 
+  const setDoctorStatus = useCallback(async (status) => {
+    try {
+      await fetch(`${API_BASE}/doctors/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status })
+      });
+    } catch (err) {
+      console.error('Error setting status:', err);
+    }
+  }, [token]);
+
   const endCall = useCallback(() => {
     if (ws.current && callWith) {
       ws.current.send(JSON.stringify({
@@ -145,21 +160,6 @@ function App() {
       alert('Error: ' + err.message);
     }
   };
-
-  const setDoctorStatus = useCallback(async (status) => {
-    try {
-      await fetch(`${API_BASE}/doctors/status`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ status })
-      });
-    } catch (err) {
-      console.error('Error setting status:', err);
-    }
-  }, [token]);
 
   const sendMessage = () => {
     if (!chatInput.trim() || !selectedUser) return;
