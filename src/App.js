@@ -97,7 +97,12 @@ function App() {
   }, [callWith, user, setDoctorStatus]);
 
   const connectWebSocket = useCallback(() => {
-    ws.current = new WebSocket(`${WS_URL}?token=${token}`);
+    try {
+      ws.current = new WebSocket(`${WS_URL}?token=${token}`);
+    } catch (err) {
+      console.error('WebSocket connection failed:', err);
+      return;
+    }
     
     ws.current.onopen = () => console.log('WebSocket connected');
     
@@ -121,8 +126,17 @@ function App() {
       }
     };
     
-    ws.current.onerror = (error) => console.error('WebSocket error:', error);
-    ws.current.onclose = () => console.log('WebSocket closed');
+    ws.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    ws.current.onclose = (event) => {
+      if (!event.wasClean) {
+        console.error('WebSocket connection closed unexpectedly:', event.code, event.reason);
+      } else {
+        console.log('WebSocket closed cleanly.');
+      }
+    };
   }, [token, user, handleAnswer, endCall]);
 
   useEffect(() => {
