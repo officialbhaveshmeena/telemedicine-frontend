@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "REACT_APP_API_URL": "https://54.71.234.208.sslip.io",
+    "REACT_APP_WS_URL": "ws://54.71.234.208.sslip.io/ws"
+  }
+}</content>
+<parameter name="filePath">c:\Users\user\Documents\projects\telemedicine-frontend\vercel.json
